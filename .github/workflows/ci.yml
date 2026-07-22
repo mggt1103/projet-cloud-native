@@ -11,7 +11,7 @@ on:
 jobs:
 
   docker-security:
-    name: Dockerfile Security Scan
+    name: Docker Security Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -19,21 +19,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-
-      # Vérification des Dockerfiles
-      - name: Run Hadolint
+      - name: Hadolint Dockerfile check
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: Dockerfile
+          dockerfile: app/Dockerfile
 
-
-      # Scan sécurité des images Docker
       - name: Build Docker image
         run: |
-          docker build -t projet-cloud-native-app .
+          docker build -t projet-cloud-native-app ./app
 
-
-      - name: Run Trivy vulnerability scanner
+      - name: Trivy image scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: projet-cloud-native-app
@@ -41,8 +36,6 @@ jobs:
           exit-code: 1
           severity: CRITICAL,HIGH
 
-
-      # Scan des secrets éventuels
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
         with:
