@@ -1,0 +1,53 @@
+name: Cloud Native Security CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  docker-security:
+    name: Dockerfile Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      # Vérification des Dockerfiles
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+
+      # Scan sécurité des images Docker
+      - name: Build Docker image
+        run: |
+          docker build -t projet-cloud-native-app .
+
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: projet-cloud-native-app
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
+
+      # Scan des secrets éventuels
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
